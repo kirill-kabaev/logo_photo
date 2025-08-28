@@ -1,75 +1,117 @@
 @echo off
-setlocal
+setlocal EnableExtensions
+set LOGFILE=setup.log
 
 echo === Setup: Add Logo project ===
+echo (лог пишется в %LOGFILE%)
+echo.
 
-rem Step 1/6: Check Python
-python -c "import sys;print(sys.version)" >nul 2>&1
+rem ---- Утилиты для логов/пауз ----
+set PAUSE_ON_FAIL=1
+
+rem Функция печати и логирования
+echo. > "%LOGFILE%"
+
+call :log "Step 1/7: Check Python"
+python -c "import sys;print(sys.version)" 1>>"%LOGFILE%" 2>&1
 if errorlevel 1 (
-  echo [FAIL]   Step 1/6: Python not found. Install Python 3.8+ and add to PATH:
-  echo          https://www.python.org/downloads/windows/
-  goto :end_fail
+  call :fail "Python not found. Install Python 3.8+ and add to PATH: https://www.python.org/downloads/windows/"
+  goto END
 ) else (
   for /f "delims=" %%V in ('python -c "import sys;print(sys.version.split()[0])"') do set PYVER=%%V
-  echo [SUCCESS] Step 1/6: Python found: %PYVER%
+  call :ok "Python found: %PYVER%"
 )
 
-rem Step 2/6: Create virtual environment
+call :log "Step 2/7: Create virtual environment (.venv)"
 if exist ".venv\Scripts\activate.bat" (
-  echo [SUCCESS] Step 2/6: Virtual environment already exists (.venv)
+  call :ok "Virtual environment already exists"
 ) else (
-  python -m venv .venv >nul 2>&1
+  python -m venv ".venv" 1>>"%LOGFILE%" 2>&1
   if errorlevel 1 (
-    echo [FAIL]   Step 2/6: Failed to create virtual environment (.venv)
-    goto :end_fail
+    rem пробуем через py-лаунчер
+    py -3 -m venv ".venv" 1>>"%LOGFILE%" 2>&1
+  )
+  if not exist ".venv\Scripts\activate.bat" (
+    call :fail "Failed to create virtual environment. See %LOGFILE% for details."
+    goto END
   ) else (
-    echo [SUCCESS] Step 2/6: Virtual environment created (.venv)
+    call :ok "Virtual environment created"
   )
 )
 
-rem Step 3/6: Activate virtual environment
+call :log "Step 3/7: Activate virtual environment"
 call ".venv\Scripts\activate.bat"
 if errorlevel 1 (
-  echo [FAIL]   Step 3/6: Failed to activate virtual environment
-  goto :end_fail
+  call :fail "Failed to activate virtual environment"
+  goto END
 ) else (
-  echo [SUCCESS] Step 3/6: Virtual environment activated
+  call :ok "Virtual environment activated"
 )
 
-rem Step 4/6: Upgrade pip
-python -m pip install --upgrade pip >nul 2>&1
+call :log "Step 4/7: Upgrade pip"
+python -m pip install --upgrade pip 1>>"%LOGFILE%" 2>&1
 if errorlevel 1 (
-  echo [FAIL]   Step 4/6: Failed to upgrade pip
-  goto :end_fail
+  call :fail "Failed to upgrade pip. See %LOGFILE%."
+  goto END
 ) else (
   for /f "delims=" %%V in ('python -m pip --version') do set PIPVER=%%V
-  echo [SUCCESS] Step 4/6: %PIPVER%
+  call :ok "%PIPVER%"
 )
 
-rem Step 5/6: Install Pillow (PIL)
-python -m pip install pillow >nul 2>&1
+call :log "Step 5/7: Install Pillow (PIL)"
+python -m pip install pillow 1>>"%LOGFILE%" 2>&1
 if errorlevel 1 (
-  echo [FAIL]   Step 5/6: Failed to install Pillow
-  goto :end_fail
+  call :fail "Failed to install Pillow. See %LOGFILE%."
+  goto END
 ) else (
   for /f "tokens=2" %%V in ('python -m pip show pillow ^| findstr /I "Version"') do set PILVER=%%V
-  echo [SUCCESS] Step 5/6: Pillow %PILVER%
+  call :ok "Pillow %PILVER%"
 )
 
-rem Step 6/6: Check tkinter availability
-python -c "import tkinter" >nul 2>&1
+call :log "Step 6/7: Check tkinter"
+python -c "import tkinter" 1>>"%LOGFILE%" 2>&1
 if errorlevel 1 (
-  echo [FAIL]   Step 6/6: tkinter not available. GUI may not run.
-  echo          Windows: reinstall Python with Tcl/Tk.  Linux: sudo apt install python3-tk
+  call :warn "tkinter not available. GUI may not run."
+  echo   Windows: reinstall Python with Tcl/Tk >>"%LOGFILE%"
+  echo   Linux:   sudo apt install python3-tk   >>"%LOGFILE%"
 ) else (
-  echo [SUCCESS] Step 6/6: tkinter available
+  call :ok "tkinter available"
+)
+
+call :log "Step 7/7: Final check (import modules)"
+python -c "import argparse, pathlib; import PIL, tkinter" 1>>"%LOGFILE%" 2>&1
+if errorlevel 1 (
+  call :fail "Final import check failed. See %LOGFILE%."
+  goto END
+) else (
+  call :ok "All required modules import successfully"
 )
 
 echo.
-echo Setup completed. You can run: run.bat
+echo Setup completed successfully. You can run: run.bat
+if defined PAUSE_ON_FAIL pause
 exit /b 0
 
-:end_fail
+:ok
+echo [SUCCESS] %~1
+goto :eof
+
+:fail
+echo [FAIL]    %~1
 echo.
-echo Setup failed. See messages above.
+type "%LOGFILE%"
+if defined PAUSE_ON_FAIL pause
 exit /b 1
+
+:warn
+echo [WARN]    %~1
+goto :eof
+
+:log
+echo -- %~1
+echo -- %~1>>"%LOGFILE%"
+goto :eof
+
+:END
+if defined PAUSE_ON_FAIL pause
+exit /b
