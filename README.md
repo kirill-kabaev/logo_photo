@@ -16,7 +16,7 @@ project/
 ├── setup.bat         # Установка зависимостей и проверка окружения (Windows)
 ├── run.bat           # Запуск в GUI (Windows)
 ├── logo/             # PNG-логотип
-└── photos/жпг/sonya.jpg → photos/жпг_лого/sonya_logo.jpg
+└── photos/жпг/sonya.jpg → photos/жпг_logo/sonya_logo.jpg
 ```
 
 ---
