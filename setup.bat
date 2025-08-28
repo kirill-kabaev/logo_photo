@@ -12,15 +12,30 @@ set PAUSE_ON_FAIL=1
 rem Функция печати и логирования
 echo. > "%LOGFILE%"
 
-call :log "Step 1/7: Check Python"
-python -c "import sys;print(sys.version)" 1>>"%LOGFILE%" 2>&1
-if errorlevel 1 (
-  call :fail "Python not found. Install Python 3.8+ and add to PATH: https://www.python.org/downloads/windows/"
+rem Step 1/7: Check Python
+for /f "delims=" %%V in ('python -c "import sys;print(sys.version.split()[0])" 2^>nul') do set PYVER=%%V
+if not defined PYVER (
+  echo [FAIL]    Step 1/7: Python not found. Install Python 3.8+ and add to PATH:
+  echo           https://www.python.org/downloads/windows/
   goto END
-) else (
-  for /f "delims=" %%V in ('python -c "import sys;print(sys.version.split()[0])"') do set PYVER=%%V
-  call :ok "Python found: %PYVER%"
 )
+
+rem Проверка минимальной версии (3.8)
+for /f "tokens=1,2 delims=." %%a in ("%PYVER%") do (
+  set MAJOR=%%a
+  set MINOR=%%b
+)
+
+if %MAJOR% LSS 3 (
+  echo [FAIL]    Step 1/7: Found Python %PYVER%. Minimum required is 3.8
+  goto END
+) else if %MAJOR% EQU 3 if %MINOR% LSS 8 (
+  echo [FAIL]    Step 1/7: Found Python %PYVER%. Minimum required is 3.8
+  goto END
+)
+
+echo [SUCCESS] Step 1/7: Python found: %PYVER% (minimum required: 3.8)
+
 
 call :log "Step 2/7: Create virtual environment (.venv)"
 if exist ".venv\Scripts\activate.bat" (
@@ -116,3 +131,4 @@ goto :eof
 if defined PAUSE_ON_FAIL pause
 
 exit /b
+
