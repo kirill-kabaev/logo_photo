@@ -92,7 +92,7 @@ python3 add_logo.py --gui
 ## ⚙️ Логика сохранения
 
 - Исходная папка: `/photos/жпг/`  
-- Результат: `/photos/жпг_лого/`  
+- Результат: `/photos/жпг_logo/`  
 - Файл: `sonya.jpg → sonya_logo.jpg`  
 
 ---
