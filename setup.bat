@@ -3,7 +3,7 @@ setlocal EnableExtensions
 set LOGFILE=setup.log
 
 echo === Setup: Add Logo project ===
-echo (лог пишется в %LOGFILE%)
+echo (log write in %LOGFILE%)
 echo.
 
 rem ---- Утилиты для логов/пауз ----
@@ -114,4 +114,5 @@ goto :eof
 
 :END
 if defined PAUSE_ON_FAIL pause
+
 exit /b
