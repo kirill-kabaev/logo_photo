@@ -1,77 +1,75 @@
 @echo off
 setlocal
 
-echo === Setting up Python virtual environment ===
+echo === Setup: Add Logo project ===
 
-rem 1) Check Python
-python --version >nul 2>&1
+rem Step 1/6: Check Python
+python -c "import sys;print(sys.version)" >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] Python not found. Install Python 3.8+ and add to PATH:
-    echo         https://www.python.org/downloads/windows/
-    pause
-    exit /b 1
-)
-
-for /f "delims=" %%V in ('python -c "import sys;print(sys.version.split()[0])"') do set PYVER=%%V
-echo [OK] Python found: %PYVER%
-
-rem 2) Create venv
-if not exist .venv (
-    python -m venv .venv
-    if errorlevel 1 (
-        echo [ERROR] Failed to create virtual environment (.venv)
-        pause
-        exit /b 1
-    ) else (
-        echo [OK] Virtual environment created (.venv)
-    )
+  echo [FAIL]   Step 1/6: Python not found. Install Python 3.8+ and add to PATH:
+  echo          https://www.python.org/downloads/windows/
+  goto :end_fail
 ) else (
-    echo [OK] Virtual environment already exists (.venv)
+  for /f "delims=" %%V in ('python -c "import sys;print(sys.version.split()[0])"') do set PYVER=%%V
+  echo [SUCCESS] Step 1/6: Python found: %PYVER%
 )
 
-rem 3) Activate venv
-call .venv\Scripts\activate.bat
+rem Step 2/6: Create virtual environment
+if exist ".venv\Scripts\activate.bat" (
+  echo [SUCCESS] Step 2/6: Virtual environment already exists (.venv)
+) else (
+  python -m venv .venv >nul 2>&1
+  if errorlevel 1 (
+    echo [FAIL]   Step 2/6: Failed to create virtual environment (.venv)
+    goto :end_fail
+  ) else (
+    echo [SUCCESS] Step 2/6: Virtual environment created (.venv)
+  )
+)
+
+rem Step 3/6: Activate virtual environment
+call ".venv\Scripts\activate.bat"
 if errorlevel 1 (
-    echo [ERROR] Failed to activate virtual environment
-    pause
-    exit /b 1
+  echo [FAIL]   Step 3/6: Failed to activate virtual environment
+  goto :end_fail
 ) else (
-    echo [OK] Virtual environment activated
+  echo [SUCCESS] Step 3/6: Virtual environment activated
 )
 
-rem 4) Upgrade pip
-python -m pip install --upgrade pip >nul
+rem Step 4/6: Upgrade pip
+python -m pip install --upgrade pip >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] Failed to upgrade pip
-    pause
-    exit /b 1
+  echo [FAIL]   Step 4/6: Failed to upgrade pip
+  goto :end_fail
 ) else (
-    for /f "delims=" %%V in ('python -m pip --version') do set PIPVER=%%V
-    echo [OK] %PIPVER%
+  for /f "delims=" %%V in ('python -m pip --version') do set PIPVER=%%V
+  echo [SUCCESS] Step 4/6: %PIPVER%
 )
 
-rem 5) Install Pillow (PIL)
-python -m pip install pillow >nul
+rem Step 5/6: Install Pillow (PIL)
+python -m pip install pillow >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] Failed to install Pillow
-    pause
-    exit /b 1
+  echo [FAIL]   Step 5/6: Failed to install Pillow
+  goto :end_fail
 ) else (
-    for /f "tokens=2" %%V in ('python -m pip show pillow ^| findstr /I "Version"') do set PILVER=%%V
-    echo [OK] Pillow installed: %PILVER%
+  for /f "tokens=2" %%V in ('python -m pip show pillow ^| findstr /I "Version"') do set PILVER=%%V
+  echo [SUCCESS] Step 5/6: Pillow %PILVER%
 )
 
-rem 6) Check tkinter
+rem Step 6/6: Check tkinter availability
 python -c "import tkinter" >nul 2>&1
 if errorlevel 1 (
-    echo [WARN] tkinter not available. GUI may not run.
-    echo [HINT] On Windows: reinstall Python with "tcl/tk" option
-    echo [HINT] On Linux: sudo apt install python3-tk
+  echo [FAIL]   Step 6/6: tkinter not available. GUI may not run.
+  echo          Windows: reinstall Python with Tcl/Tk.  Linux: sudo apt install python3-tk
 ) else (
-    echo [OK] tkinter available
+  echo [SUCCESS] Step 6/6: tkinter available
 )
 
 echo.
-echo === Setup complete ===
-echo Run: run.bat
-pause
+echo Setup completed. You can run: run.bat
+exit /b 0
+
+:end_fail
+echo.
+echo Setup failed. See messages above.
+exit /b 1
