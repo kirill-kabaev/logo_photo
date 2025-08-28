@@ -1,10 +1,15 @@
 @echo off
+setlocal
 echo === Running Add Logo program ===
 
-REM Активируем виртуальное окружение
-call .venv\Scripts\activate.bat
+REM Если есть виртуальное окружение — активируем
+if exist ".venv\Scripts\activate.bat" (
+    call ".venv\Scripts\activate.bat"
+)
 
-REM Запускаем программу в GUI
+REM Запуск GUI
 python add_logo.py --gui
 
+echo.
+echo (If you see "No module named 'PIL'", install Pillow manually:  pip install pillow)
 pause

@@ -39,7 +39,7 @@ if errorlevel 1 (
     echo [OK] Virtual environment activated
 )
 
-rem 4) Upgrade pip and install Pillow
+rem 4) Upgrade pip
 python -m pip install --upgrade pip >nul
 if errorlevel 1 (
     echo [ERROR] Failed to upgrade pip
@@ -50,6 +50,7 @@ if errorlevel 1 (
     echo [OK] %PIPVER%
 )
 
+rem 5) Install Pillow (PIL)
 python -m pip install pillow >nul
 if errorlevel 1 (
     echo [ERROR] Failed to install Pillow
@@ -60,15 +61,17 @@ if errorlevel 1 (
     echo [OK] Pillow installed: %PILVER%
 )
 
-rem 5) Check tkinter
+rem 6) Check tkinter
 python -c "import tkinter" >nul 2>&1
 if errorlevel 1 (
-    echo [WARN] tkinter not available. GUI may not run. On Windows install via Python installer; on Ubuntu: sudo apt install python3-tk
+    echo [WARN] tkinter not available. GUI may not run.
+    echo [HINT] On Windows: reinstall Python with "tcl/tk" option
+    echo [HINT] On Linux: sudo apt install python3-tk
 ) else (
     echo [OK] tkinter available
 )
 
 echo.
 echo === Setup complete ===
-echo Run: run_windows.bat
+echo Run: run.bat
 pause
