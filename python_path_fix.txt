@@ -7,8 +7,8 @@ Step 1. Remove Microsoft Store alias (WindowsApps) from PATH
 1.  Press Win+X and choose “Windows PowerShell”.
 2.  Copy-paste these commands one by one and press Enter:
 
-$old = [Environment]::GetEnvironmentVariable(“PATH”,“User”) $parts =
-$old -split ';' | Where-Object {$_ -ne “” -and $_ -notmatch ‘’}
+$old = [Environment]::GetEnvironmentVariable(“PATH”,“User”)
+$parts = $old -split ';' | Where-Object {$_ -ne “” -and $_ -notmatch ‘’}
 new = (parts | Select-Object -Unique) -join ‘;’
 [Environment]::SetEnvironmentVariable(“PATH”,$new,“User”)
 
