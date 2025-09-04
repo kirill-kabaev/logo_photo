@@ -1,0 +1,52 @@
+========================================= INSTRUCTION: How to properly
+enable Python in PATH (Windows 10/11)
+=========================================
+
+Step 1. Remove Microsoft Store alias (WindowsApps) from PATH
+
+1.  Press Win+X and choose “Windows PowerShell”.
+2.  Copy-paste these commands one by one and press Enter:
+
+$old = [Environment]::GetEnvironmentVariable(“PATH”,“User”) $parts =
+$old -split ';' | Where-Object {$_ -ne “” -and $_ -notmatch ‘’}
+new = (parts | Select-Object -Unique) -join ‘;’
+[Environment]::SetEnvironmentVariable(“PATH”,$new,“User”)
+
+Step 2. Open CMD and check Python
+
+1.  Open CMD (Win+R -> cmd -> Enter).
+2.  Type: 
+where python
+python –version
+
+If you still get error, continue with Step 3.
+
+Step 3. Find actual Python installation path
+
+1.  Type in CMD: py –version
+
+2.  Then type:
+for /f “delims=” %P in (‘py -c “import sys,os;print(os.path.dirname(sys.executable))”’) do set PYPATH=%P
+echo %PYPATH%
+
+You should see something like: C:
+
+Step 4. Temporarily update PATH (to test)
+
+1.  In CMD type: 
+set PATH=%PYPATH%;%PYPATH%;%PATH%
+
+2.  Check: 
+where python
+python –version
+
+Step 5. Save PATH permanently
+
+1.  If everything works, type: 
+setx PATH “%PYPATH%;%PYPATH%;%PATH%”
+
+2.  Close CMD, open a new one, and check again: 
+where python 
+python –version
+
+========================================= That’s it! Now Python is correctly in your PATH. =========================================
